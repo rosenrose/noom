@@ -1,11 +1,12 @@
 doctype html
-html
+html(lang="en")
   head
     meta(charset="UTF-8")
     meta(http-equiv="X-UA-Compatible", content="IE=edge")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
-    link(rel="stylesheet", href="https://unpkg.com/mvp.css")
     title Noom
+    link(rel="stylesheet", href="https://unpkg.com/mvp.css")
+    link(rel="stylesheet", href="/public/css/style.css")
   body
     header
       h1 Noom
@@ -13,13 +14,30 @@ html
       div#welcome
         form
           input(type="text" placdeholder="room name", required)
-          button Enter Room
+          button Create/Enter Room
+        h4 Open Rooms:
+        ul
       div#videoCall(hidden)
-        div#myStream
-          video#myFace(autoplay, playsinline, width=400, height=400)
-          button#mute Mute
-          button#camera Camera Off
-          select#cameras
-          video#peerFace(autoplay, playsinline, width=400, height=400)
-    script(src="/socket.io/socket.io.js")
+        button#leave Leave Room
+        div#stream
+          div#myStream
+            h5 My Face
+            video#myFace(autoplay, playsinline)
+            div#streamOption
+              select#cameras
+              button#mute Mute
+              button#camera Camera Off
+          div#peerStream
+            h5 Peer Face
+            video#peerFace(autoplay, playsinline)
+        div#chat
+          h4 Chat room
+          ul
+          form#msg
+            input(type="text", placeholder="message", required)
+            button Send
+    template#msgTemplate
+      li.msgList
+        h5.msg
+    script(src="/socket.io/socket.io.js") 
     script(src="/public/js/app.js")
