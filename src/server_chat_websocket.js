@@ -17,7 +17,8 @@ const wss = new WebSocket.Server({ server });
 
 // Put all your backend code here.
 
-server.listen(process.env.PORT, handleListen);
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, handleListen);
 
 let sockets = [];
 

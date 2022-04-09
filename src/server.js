@@ -59,8 +59,9 @@ wsServer.on("connection", (socket) => {
   });
 });
 
-const handleListen = () => console.log(`Listening on http://localhost:3000`);
-httpServer.listen(process.env.PORT, handleListen);
+const PORT = process.env.PORT || 3000;
+const handleListen = () => console.log(`Listening on http://localhost:${PORT}`);
+httpServer.listen(PORT, handleListen);
 
 function countRoom(roomName) {
   return wsServer.sockets.adapter.rooms.get(roomName)?.size;
