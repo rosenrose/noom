@@ -1,0 +1,36 @@
+#room ul {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background-color: wheat;
+  padding: 1rem;
+}
+
+li.msgList {
+  height: fit-content;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: black;
+  background-color: white;
+  border-radius: 1rem;
+}
+li.sent {
+  align-self: flex-end;
+  border-top-right-radius: 0;
+}
+li.received {
+  align-self: flex-start;
+  border-top-left-radius: 0;
+}
+li.info {
+  align-self: center;
+  color: white;
+  background-color: gray;
+}
+
+li > * {
+  margin: 0;
+}

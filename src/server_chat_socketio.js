@@ -1,111 +1,71 @@
 import http from "http";
+import SocketIO from "socket.io";
 import express from "express";
-import WebSocket from "ws";
-import { Server } from "socket.io";
-import { instrument } from "@socket.io/admin-ui";
-import path from "path";
 
 const app = express();
 
 app.set("view engine", "pug");
-app.set("views", path.join(__dirname, "views"));
-app.use("/public", express.static(path.join(__dirname, "public")));
-
-app.get("/", (req, res) => res.render("home"));
-app.get("/*", (req, res) => res.redirect("/"));
-// app.listen(3000, handleListen);
+app.set("views", __dirname + "/views");
+app.use("/public", express.static(__dirname + "/public"));
+app.get("/", (_, res) => res.render("home"));
+app.get("/*", (_, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
-httpServer.listen(3000, handleListen);
-function handleListen() {
-  console.log(path.join(__dirname, "public"));
-}
+const wsServer = SocketIO(httpServer);
 
-const io = new Server(httpServer, {
-  cors: {
-    origin: ["https://admin.socket.io"],
-    credentials: true,
-  },
-});
-
-instrument(io, { auth: false });
-
-io.on("connection", (socket) => {
-  io.sockets.emit("room_change", publicRooms());
+wsServer.on("connection", (socket) => {
+  wsServer.sockets.emit("room_change", publicRooms());
 
   socket.on("enter_room", (roomName, nickname, done) => {
     socket["nickname"] = nickname;
     socket.join(roomName);
     done();
     socket.to(roomName).emit("welcome", socket["nickname"], countRoom(roomName));
-    io.sockets.emit("room_change", publicRooms());
+    wsServer.sockets.emit("room_change", publicRooms());
   });
 
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) => {
-      socket.to(room).emit("bye", socket["nickname"], countRoom(room) - 1);
+      sendBye(socket, room);
     });
   });
 
   socket.on("disconnect", () => {
-    io.sockets.emit("room_change", publicRooms());
+    wsServer.sockets.emit("room_change", publicRooms());
   });
 
   socket.on("new_message", (message, room, done) => {
-    socket.to(room).emit("new_message", `${socket["nickname"]}: ${message}`);
+    socket.to(room).emit("new_message", { nick: socket["nickname"], msg: message });
     done();
   });
 
-  socket.onAny((event) => {
-    console.log(event);
+  socket.on("change_nickname", (nickname, room) => {
+    socket.to(room).emit("change_nickname", { nick: socket["nickname"], newNick: nickname });
+    socket["nickname"] = nickname;
+  });
+
+  socket.on("leave_room", (room, done) => {
+    sendBye(socket, room);
+    socket.leave(room);
+    wsServer.sockets.emit("room_change", publicRooms());
+    done();
   });
 });
 
 function publicRooms() {
-  const { sids, rooms } = io.sockets.adapter;
-  const publicRooms = [];
+  const { sids, rooms } = wsServer.sockets.adapter;
+  const publicRooms = [...rooms.keys()].filter((key) => !sids.has(key));
 
-  for (const [key] of rooms.entries()) {
-    if (!sids.has(key)) {
-      publicRooms.push(key);
-    }
-  }
   return publicRooms;
 }
 
 function countRoom(roomName) {
-  return io.sockets.adapter.rooms.get(roomName).size;
+  return wsServer.sockets.adapter.rooms.get(roomName).size;
 }
 
-/* const wsServer = new WebSocket.Server({ server });
-let sockets = [];
+function sendBye(socket, room) {
+  socket.to(room).emit("bye", socket["nickname"], countRoom(room) - 1);
+}
 
-wsServer.on("connection", (socket) => {
-  socket["nickname"] = "Anonymous";
-  sockets.push(socket);
-  console.log(sockets.length);
-
-  socket.on("message", (msg) => {
-    // console.log(msg, msg.toString());
-    const message = JSON.parse(msg.toString());
-
-    switch (message.type) {
-      case "nickname":
-        socket["nickname"] = message.payload;
-        break;
-      case "chat":
-        sockets.forEach((s) => {
-          if (s === socket) {
-            return;
-          }
-          s.send(`${socket.nickname}: ${message.payload}`);
-        });
-        break;
-    }
-  });
-
-  socket.on("close", () => {
-    sockets = sockets.filter((s) => s !== socket);
-    console.log(sockets.length);
-  });
-}); */
+const handleListen = () => console.log(`Listening on http://localhost:3000`);
+httpServer.listen(process.env.PORT, handleListen);
