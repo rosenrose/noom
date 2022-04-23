@@ -6,14 +6,13 @@
   "author": "",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon"
+    "start": "babel-node src/server.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.3",
     "@babel/core": "^7.17.4",
     "@babel/node": "^7.16.8",
-    "@babel/preset-env": "^7.16.11",
-    "nodemon": "^2.0.15"
+    "@babel/preset-env": "^7.16.11"
   },
   "dependencies": {
     "@socket.io/admin-ui": "^0.2.0",
