@@ -8,4 +8,4 @@ RUN npm ci --only=production
 
 COPY . ./
 
-CMD [ "babel-node", "src/server.js" ]
+CMD [ "node", "src/server.js" ]
